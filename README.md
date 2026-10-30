@@ -167,7 +167,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-A aplicação abrirá em `http://localhost:8501` ou https://previsaoveiculosnaivebayes.streamlit.app/
+A aplicação abrirá em `http://localhost:8501` ou https://previsaoveiculos.streamlit.app/
 
 ### Dependências (`requirements.txt`)
 
