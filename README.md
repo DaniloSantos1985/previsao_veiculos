@@ -167,7 +167,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-A aplicação abrirá em `http://localhost:8501`.
+A aplicação abrirá em `http://localhost:8501` ou https://previsaoveiculosnaivebayes.streamlit.app/
 
 ### Dependências (`requirements.txt`)
 
@@ -239,8 +239,7 @@ Métricas: acurácia, precisão, recall, F1 e matriz de confusão
 
 **Danilo Oliveira dos Santos**
 
-- GitHub: [github.com/seu-usuario](https://github.com/seu-usuario)
-- LinkedIn: [linkedin.com/in/seu-perfil](https://linkedin.com/in/seu-perfil)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DaniloSantos1985) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/danilo-oliveira-santos-b5b3a1174/)
 
 ---
 
