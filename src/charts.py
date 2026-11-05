@@ -51,17 +51,19 @@ def metricas(y_test, y_pred):
 
 def metrics_report(y_test, y_pred):
     """
-    Gera o relatório de classificação por classe, traduzido para português.
+    Gera o relatório de classificação por classe, traduzido para português,
+    separando a acurácia global das métricas por classe.
 
     Retorna:
-    pd.DataFrame: tabela com precisão, recall, F1-Score e suporte por classe
+    tuple: (report_df, acuracia_global)
     """
-
-    # output_dict=True → retorna o relatório como dicionário em vez de texto
+    # output_dict=True → retorna o relatório como dicionário
     report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    
+    # Extrai e remove a acurácia global para tratá-la isoladamente
+    acuracia_global = report.pop('accuracy', None)
 
-    # Converte o dicionário em DataFrame e transpõe
-    # transpose() → classes ficam nas linhas e métricas nas colunas
+    # Converte o restante do dicionário em DataFrame e transpõe
     report_df = pd.DataFrame(report).transpose()
 
     # Dicionário de tradução dos nomes das colunas
@@ -69,93 +71,24 @@ def metrics_report(y_test, y_pred):
         'precision': 'Precisão',
         'recall':    'Recall',
         'f1-score':  'F1-Score',
-        'support':   'Suporte'      # Quantidade de registros reais de cada classe
+        'support':   'Suporte'
     }
 
-    # Dicionário de tradução dos nomes das linhas
-    # '0' a '3' são os códigos numéricos das classes gerados por cat.codes
-    # (ordem alfabética original: acc, good, unacc, vgood)
+    # Dicionário de tradução dos nomes das linhas (sem 'accuracy')
     traducao_linhas = {
         '0':            'Aceitável',
         '1':            'Bom',
         '2':            'Inaceitável',
         '3':            'Muito Bom',
-        'accuracy':     'Acurácia',
         'macro avg':    'Média Macro',
         'weighted avg': 'Média Ponderada'
     }
 
-    # Aplica as traduções nas colunas e nas linhas
+    # Aplica as traduções
     report_df = report_df.rename(columns=traducao_colunas)
     report_df = report_df.rename(index=traducao_linhas)
 
-    return report_df
-
-
-# ─── FUNÇÃO: GRÁFICO DE MEDIDOR (GAUGE) ──────────────────────────────────────
-
-def fig_gauge(acuracia):
-    """
-    Gera o gráfico de medidor (gauge) com a acurácia do modelo.
-    Ele fica ao lado dos cards de métricas, por isso tem altura reduzida.
-    """
-
-    fig = go.Figure(
-        go.Indicator(
-            mode='gauge+number',           # Exibe o ponteiro e o número central
-            value=acuracia * 100,          # Converte de 0–1 para percentual 0–100
-
-            # Número central do medidor
-            number={
-                'suffix': "%",             # Adiciona o símbolo de % após o valor
-                'font': {'size': 28}       # Tamanho proporcional à altura do gráfico
-            },
-
-            # Título exibido acima do medidor
-            title={
-                'text': "Acurácia Geral do Modelo",
-                'font': {'size': 14, 'color': 'white'}
-            },
-
-            gauge={
-                # Configuração do eixo do medidor
-                'axis': {
-                    'range': [0, 100],     # Escala de 0 a 100%
-                    'tickwidth': 1,
-                    'tickcolor': "white",
-                    'tickfont': {'size': 9}
-                },
-                'bar': {'color': '#2e7d32'},      # Cor da barra de progresso (verde)
-                'bgcolor': "#262730",             # Cor de fundo do medidor (tema escuro)
-                'borderwidth': 1,
-                'bordercolor': "#374151",
-
-                # Faixas coloridas de desempenho
-                'steps': [
-                    {"range": [0, 60],   "color": "#5c2b29"},  # Vermelho — ruim
-                    {"range": [60, 80],  "color": "#5e5b22"},  # Amarelo — regular
-                    {"range": [80, 100], "color": "#1b4d3e"}   # Verde — bom
-                ],
-
-                # Linha branca que marca o valor atual
-                'threshold': {
-                    'line': {'color': "white", 'width': 3},
-                    'thickness': 0.75,
-                    'value': acuracia * 100
-                }
-            }
-        )
-    )
-
-    # Margens reduzidas e altura fixa para alinhar com as duas linhas de métricas
-    fig.update_layout(
-        margin=dict(l=15, r=15, t=35, b=5),
-        height=160,
-    )
-
-    # width='stretch' → ocupa toda a largura da coluna
-    st.plotly_chart(fig, width='stretch')
-
+    return report_df, acuracia_global
 
 # ─── FUNÇÃO: GRÁFICO DE BARRAS — DISTRIBUIÇÃO DAS CLASSES ────────────────────
 
@@ -191,7 +124,7 @@ def bar_chart(df):
             'yanchor': 'top'
         },
         height=380,                          # Mesma altura do dataframe e da matriz
-        margin=dict(t=10, l=20, r=20, b=30), # Margem superior mínima
+        margin=dict(t=10, l=20, r=20, b=10), # Margem superior mínima
         showlegend=False,                    # Remove a legenda lateral
         coloraxis_showscale=False            # Oculta a barra de escala de cores
     )
@@ -233,7 +166,7 @@ def matriz_confusao(y_test, y_pred):
     )
 
     fig_cm.update_layout(
-        height=380,                           # Mesma altura do dataframe e das barras
+        height=400,                           # Mesma altura do dataframe e das barras
         margin=dict(t=10, l=20, r=20, b=30),
         coloraxis=dict(
             cmin=0,                           # Valor mínimo da escala de cores            
@@ -245,5 +178,5 @@ def matriz_confusao(y_test, y_pred):
         )
     )
 
-    # ⚠️ Aqui está use_container_width, enquanto as outras funções usam width='stretch'
+    # Plotar a matriz de confusão no Streamlit, com largura ajustada ao container
     st.plotly_chart(fig_cm, width='stretch')
