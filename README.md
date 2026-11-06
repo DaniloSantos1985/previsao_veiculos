@@ -30,11 +30,11 @@ Dashboard interativo que classifica o nível de aceitação de automóveis com b
 
 O objetivo é prever a **qualidade de um veículo** a partir de seis atributos (preço, manutenção, portas, capacidade, porta-malas e segurança). O projeto cobre o ciclo completo de uma solução de dados:
 
-1. Carga e tratamento do dataset
-2. Codificação das variáveis categóricas
-3. Treinamento e avaliação do modelo
-4. Visualização das métricas em um dashboard
-5. Interface para novas previsões
+1. Carga, limpeza e divisão estratificada dos dados (stratify=y)
+2. Balanceamento de treino por amostragem (RandomOverSampler) para neutralizar viés em classes minoritárias
+3. Treinamento e avaliação robusta do classificador Categorical Naive Bayes
+4. Dashboard gerencial e operacional modularizado em Streamlit
+5. Simulação de previsões em tempo real com probabilidade por classe
 
 As classes previstas são:
 
@@ -98,22 +98,36 @@ O projeto utiliza o **Car Evaluation Dataset**, disponível no [UCI Machine Lear
 | [Pandas](https://pandas.pydata.org/) | Leitura e manipulação dos dados |
 | [scikit-learn](https://scikit-learn.org/) | `OrdinalEncoder`, `CategoricalNB`, `train_test_split` e métricas |
 | [Plotly](https://plotly.com/python/) | Gráfico de barras, matriz de confusão e medidor |
+| [imbalanced-learn](https://scikit-learn.org/) | Balanceamento de classes de treino via `RandomOverSampler` |
 
 ---
 
 ## 📁 Estrutura do projeto
 
 ```
-.
-├── app.py                  # Página principal do dashboard
+previsao_veiculos/
+│
+├── app.py                     # Arquivo de redirecionamento ou página raiz
+├── requirements.txt           # Dependências do projeto
+├── README.md                  # Documentação do projeto
 ├── data/
-│   └── car.csv             # Dataset de avaliação de automóveis
-├── utils/
-│   └── data_loader.py      # Carga dos dados e treinamento do modelo
+│   └── car.csv                # Dataset de avaliação de automóveis
+├── models/                    # Modelos salvos e metadados
 ├── charts/
-│   └── charts.py           # Métricas e funções de gráficos
-├── requirements.txt        # Dependências do projeto
-└── README.md
+│   └── charts.py              # Funções gráficas e de relatórios reutilizáveis
+└── src/
+    ├── __init__.py
+    ├── data_loader.py         # Carregamento e tratamento dos dados
+    ├── model_training.py      # Pipeline de treino, divisão estratificada e oversampling
+    ├── modelo_evaluation.py   # Funções de avaliação estatística
+    └── prediction.py          # Lógica de inferência e previsões
+└── pages/
+    ├── 01_Visão_Geral.py      # KPIs e resumo executivo
+    ├── 02_Exploração_de_Dados.py # EDA, filtros avançados e exportação CSV
+    ├── 03_Desempenho_do_Modelo.py # Matriz de confusão e métricas estatísticas limpas
+    ├── 04_Predições.py        # Simulador interativo com probabilidades por classe
+    ├── 05_Relatórios.py       # Documentação técnica e exportação de relatórios
+    └── 06_Configurações.py    # Metadados, stack tecnológica e parâmetros
 ```
 
 | Arquivo | Responsabilidade |
@@ -164,7 +178,7 @@ pip install -r requirements.txt
 **4. Execute o dashboard**
 
 ```bash
-streamlit run app.py
+streamlit run Principal.py
 ```
 
 A aplicação abrirá em `http://localhost:8501` ou https://previsaoveiculos.streamlit.app/
