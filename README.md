@@ -47,7 +47,7 @@ As classes previstas são:
 
 ---
 
-```
+
 ## 🖼️ Demonstração
 
 ### Visão Geral
@@ -58,7 +58,7 @@ As classes previstas são:
 
 ### Nova Previsão
 ![Nova Previsão](assets/Predicoes.JPG)
-```
+
 
 ---
 
