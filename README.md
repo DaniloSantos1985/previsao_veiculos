@@ -49,12 +49,14 @@ As classes previstas são:
 
 ## 🖼️ Demonstração
 
-> Adicione aqui capturas de tela do dashboard. Salve as imagens em uma pasta `assets/` e referencie assim:
+### Visão Geral
+![Visão Geral](assets/VisaoGeral.JPG)
 
-```markdown
-![Dashboard principal](assets/VisaoGeral.JPG)
+### Desempenho do Modelo
 ![Desempenho do Modelo](assets/DesempenhoModelo.JPG)
-![Nova previsão](assets/Predicoes.JPG)
+
+### Nova Previsão
+![Nova Previsão](assets/Predicoes.JPG)
 ```
 
 ---
