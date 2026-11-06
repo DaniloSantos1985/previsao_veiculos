@@ -1,10 +1,22 @@
-import streamlit as st
-import pandas as pd
-from src.data_loader import load_data
-from src.model_training import model
-from src.charts import metrics_report
+# ═════════════════════════════════════════════════════════════════════════════
+# 04_Predições.py — Simulador de previsão de qualidade de veículos
+#
+# Função: receber os atributos de um veículo em um formulário, prever a classe
+# com o modelo Naive Bayes e mostrar a probabilidade estimada de cada classe.
+# ═════════════════════════════════════════════════════════════════════════════
 
-# Configuração da página
+# ─── IMPORTAÇÕES ─────────────────────────────────────────────────────────────
+
+import streamlit as st                          # Framework para criação da interface web
+import pandas as pd                             # Manipulação de dados (DataFrame de entrada e de probabilidades)
+from src.data_loader import load_data           # Lê o CSV de veículos
+from src.model_training import model            # Treina o modelo e devolve encoder, modelo e previsões de teste
+from src.charts import metrics_report           # (não utilizado nesta página)
+
+# ─── CONFIGURAÇÃO DA PÁGINA ──────────────────────────────────────────────────
+
+# Título da aba, ícone e layout em tela cheia
+# Deve ser o primeiro comando Streamlit do arquivo
 st.set_page_config(
     page_title="Fazer Previsões - Classificação de Veículos",
     page_icon="🚗",
@@ -14,7 +26,11 @@ st.set_page_config(
 st.title("🚗 Simulador de Previsão de Qualidade")
 st.markdown("Preencha os atributos técnicos do veículo para estimar a sua classe de qualidade e visualizar a distribuição de probabilidades do modelo Naive Bayes.")
 
+# ─── DADOS E MODELO ──────────────────────────────────────────────────────────
+
 # Carrega os dados e obtém o modelo treinado e o encoder
+# model() devolve: encoder, modelo, y_test, y_pred (nessa ordem)
+# y_test e y_pred não são usados nesta página
 df = load_data()
 encoder, modelo, y_test, y_pred = model(df)
 
@@ -72,34 +88,38 @@ traducao_reversa = {
 # ─── ORDEM LÓGICA DAS OPÇÕES ─────────────────────────────────────────────────
 # Listas fixas (do menor para o maior) em vez de df[col].unique(),
 # que devolveria os valores embaralhados, na ordem do CSV
-ordem_buying_maint = ['low', 'med', 'high', 'vhigh'] 
-ordem_doors = ['2', '3', '4', '5more']       
+ordem_buying_maint = ['low', 'med', 'high', 'vhigh']
+ordem_doors = ['2', '3', '4', '5more']
 ordem_people = ['2', '4', 'more']
 ordem_lug_boot = ['small', 'med', 'big']
 ordem_safety = ['low', 'med', 'high']
 
-# ─── FORMULÁRIO ──────────────────────────────────────────────────────────────
+# ─── FORMULÁRIO E RESULTADO ──────────────────────────────────────────────────
 
+# Cartão com borda que reúne o formulário (esquerda) e o resultado (direita)
 with st.container(border=True):
     st.subheader("🚗 Nova Previsão")
     col_esq, col_dir = st.columns([1, 1])
 
+    # ── Coluna esquerda: formulário ──────────────────────────────────────────
     with col_esq:
         # st.form agrupa os campos: a página só é reprocessada ao clicar no botão
         with st.form('previsão'):
-            preco      = st.selectbox('Preço',      [traducao['buying'][v] for v in ordem_buying_maint])            
+            # Cada selectbox mostra as opções traduzidas, na ordem lógica definida acima
+            preco      = st.selectbox('Preço',      [traducao['buying'][v] for v in ordem_buying_maint])
             manutencao = st.selectbox('Manutenção', [traducao['maint'][v]  for v in ordem_buying_maint])
             pessoas = st.selectbox('Capacidade de Passageiros', [traducao['persons'][v] for v in ordem_people])
-            portas  = st.selectbox('Portas',                    [traducao['doors'][v]   for v in ordem_doors])            
+            portas  = st.selectbox('Portas',                    [traducao['doors'][v]   for v in ordem_doors])
             porta_malas = st.selectbox('Porta Malas', [traducao['lug_boot'][v] for v in ordem_lug_boot])
             segurança   = st.selectbox('Segurança',   [traducao['safety'][v]   for v in ordem_safety])
 
             # Botão de envio do formulário: retorna True quando clicado
             processar = st.form_submit_button('🔮 Fazer Previsão')
-    
-    with col_dir:        
-        # ─── RESULTADO ───────────────────────────────────────────────────────  
-        # Fica FORA do st.form: o resultado é exibido abaixo do formulário
+
+    # ── Coluna direita: resultado ────────────────────────────────────────────
+    with col_dir:
+        # ─── RESULTADO ───────────────────────────────────────────────────────
+        # Fica FORA do st.form, na coluna ao lado: só aparece depois do clique
 
         if processar:
             # Valores escolhidos, ainda em português, na mesma ordem das colunas do CSV
@@ -124,12 +144,13 @@ with st.container(border=True):
 
             # Previsão: retorna o código numérico da classe (0, 1, 2 ou 3)
             predict_encoded = modelo.predict(input_encoder)
+            # predict_proba: probabilidade de cada classe; [0] pega a única linha de entrada
             probabilidades = modelo.predict_proba(input_encoder)[0]
 
             # Nomes originais das classes, na mesma ordem dos códigos 0, 1, 2, 3
             # cat.categories → ['acc', 'good', 'unacc', 'vgood'] (ordem alfabética)
             categorias = df['class'].astype('category').cat.categories
-                
+
             # Converte o código de volta para o nome da classe em inglês
             # cat.categories → ['acc', 'good', 'unacc', 'vgood'] (ordem alfabética)
             previsao_original = categorias[predict_encoded][0]
@@ -144,7 +165,7 @@ with st.container(border=True):
                 'Classe':[traducao['class'][c] for c in categorias[modelo.classes_]],
                 'Probabilidade': probabilidades,
             }).sort_values(by='Probabilidade', ascending=False)
-        
+
             # Card com o resultado e as probabilidades
             with st.container(border=True):
                 st.subheader(f"🔮 Resultado da Classificação")
@@ -158,9 +179,9 @@ with st.container(border=True):
                     st.success(f'Resultado da previsão: 🟢 {previsao_traduzida}')    # Verde
                 else:
                     st.info(f'Resultado da previsão: 💎 {previsao_traduzida}')       # Azul (Muito Bom)
-                
+
                 st.caption('Classe prevista pelo modelo Naive Bayes')
-                
+
                 st.markdown("#### 📈 Probabilidade Estimada por Classe")
                 st.markdown("Compreenda como o modelo distribuiu a sua confiança entre as categorias:")
 
@@ -176,16 +197,20 @@ with st.container(border=True):
                     with col_r:
                         # label_visibility='collapsed' → mostra só o número
                         st.metric(
-                            label='Confiança', 
+                            label='Confiança',
                             value=f"{linha['Probabilidade']:.1%}",
                             label_visibility='collapsed'
                         )
-    
+
+# ─── NOTA SOBRE AS PROBABILIDADES ────────────────────────────────────────────
+# Esta nota aparece sempre, mesmo antes de qualquer previsão
 st.caption(f'Algoritmo: Categorical Naive Bayes | As probabilidades do Naive Bayes refletem a verossimilhança calculada a partir'
     'dos atributos e não são necessariamente calibradas.')
 
-# Exemplo de expansor com st.info explicativo para a página de Predições
-with st.expander("ℹ️ Detalhes Técnicos e Metodologia da Página de Predições"):
+# ─── DETALHES TÉCNICOS ───────────────────────────────────────────────────────
+
+# Expansor (recolhido por padrão) com a descrição técnica do módulo
+with st.expander("ℹ️ Detalhes Técnicos e Metodologia da Página de Predições"):    
     st.info(
         """
         **📌 Características e Funcionalidades do Módulo de Predições:**
@@ -197,4 +222,3 @@ with st.expander("ℹ️ Detalhes Técnicos e Metodologia da Página de Prediç�
         * **Feedback Visual Contextual:** Destaque em cores e indicadores visuais personalizados de acordo com o resultado da classificação.
         """
     )
-
